@@ -1,8 +1,6 @@
 name: Deploy to EC2
 
-on:
-  push:
-    branches: [ main ]
+on: [push]
 
 jobs:
   deploy:
@@ -13,11 +11,12 @@ jobs:
     - name: Copy prowler.yaml to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        HOST: 35.175.132.153
-        USER: ubuntu
+        HOST: your-ec2-instance-ip
+        USER: ec2-user
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         scp -o StrictHostKeyChecking=no -i private_key prowler.yaml ${USER}@${HOST}:~/prowler.yaml
+        
     - name: Deploy to EC2
       env:
         HOST: 35.175.132.153
