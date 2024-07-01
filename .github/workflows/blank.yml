@@ -16,7 +16,7 @@ jobs:
         HOST: 34.234.193.171
         USER: ubuntu
       run: |
-        echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+        echo "$PRIVATE_KEY" > private_key && chmod 777 private_key
         scp -o StrictHostKeyChecking=no -i private_key prowler.yaml ${USER}@${HOST}:~/prowler.yaml
 
     - name: Deploy to EC2
@@ -29,7 +29,7 @@ jobs:
           # Install K3s
           sudo su -
           apt update 
-          curl -sfL https://get.k3s.io | sh - --write-kubeconfig-mode 644
+          curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 777
           
           # Wait for K3s to be ready
           until kubectl get nodes; do sleep 5; done
