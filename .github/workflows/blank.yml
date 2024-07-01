@@ -1,13 +1,14 @@
 name: Deploy to EC2
 
-on: [push]
+on:
+  push:
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-
 
     - name: Copy prowler.yaml to EC2
       env:
@@ -17,36 +18,27 @@ jobs:
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         scp -o StrictHostKeyChecking=no -i private_key prowler.yaml ${USER}@${HOST}:~/prowler.yaml
-        
+
     - name: Deploy to EC2
       env:
+        PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
         HOST: 35.175.132.153
         USER: ubuntu
       run: |
-        ssh -i ${USER}@${HOST} '
+        ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
           # Install K3s
-          curl -sfL https://get.k3s.io | sudo sh -
+          curl -sfL https://get.k3s.io | sh -
           
-          # Wait for K3s to be ready and set up kubectl
-          sudo systemctl enable k3s
-          sudo systemctl start k3s
-          sleep 10  # Give K3s a moment to start up
-          sudo k3s kubectl get nodes
-          
-          # Set up kubeconfig for the ubuntu user
-          mkdir -p ~/.kube
-          sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-          sudo chown ubuntu:ubuntu ~/.kube/config
-          sudo chmod 600 ~/.kube/config
-          export KUBECONFIG=~/.kube/config
+          # Wait for K3s to be ready
+          until kubectl get nodes; do sleep 5; done
           
           # Install Helm
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | sudo bash
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
           
           # Create namespaces
-          kubectl create namespace checkov --dry-run=client -o yaml | kubectl apply -f -
-          kubectl create namespace prowler --dry-run=client -o yaml | kubectl apply -f -
-          kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace checkov
+          kubectl create namespace prowler
+          kubectl create namespace cert-manager
           
           # Install Prowler using the yaml file from the repo
           kubectl apply -f ~/prowler.yaml -n prowler
@@ -57,7 +49,7 @@ jobs:
           # Install cert-manager
           kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml
           helm repo add jetstack https://charts.jetstack.io --force-update
-          helm upgrade --install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.15.1
+          helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.15.1
           
           # Verify installations
           kubectl get namespaces
