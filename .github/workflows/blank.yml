@@ -22,13 +22,16 @@ jobs:
     - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        HOST: 52.87.154.195
+        HOST: your-ec2-instance-ip
         USER: ubuntu
       run: |
         ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
           # Install K3s
-          sudo su 
           curl -sfL https://get.k3s.io | sudo sh -
+          
+          # Set KUBECONFIG environment variable
+          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+          sudo chmod 644 $KUBECONFIG
           
           # Wait for K3s to be ready
           until sudo kubectl get nodes; do sleep 5; done
@@ -48,7 +51,6 @@ jobs:
           sudo kubectl apply -f https://raw.githubusercontent.com/bridgecrewio/checkov/main/kubernetes/checkov-job.yaml -n checkov
           
           # Install cert-manager
-          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
           sudo kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml
           sudo helm repo add jetstack https://charts.jetstack.io --force-update
           sudo helm upgrade --install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.15.1
@@ -60,3 +62,4 @@ jobs:
           sudo kubectl get pods -n cert-manager
           sudo helm list -A
         '
+
