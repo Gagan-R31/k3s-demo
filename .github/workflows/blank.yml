@@ -13,10 +13,9 @@ jobs:
     - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        HOST: 52.87.154.195
-        USER: ubuntu
+        HOST: your-ec2-instance-ip
+        USER: ec2-user
       run: |
-        echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
           # Install K3s
           curl -sfL https://get.k3s.io | sh -
@@ -32,28 +31,8 @@ jobs:
           kubectl create namespace prowler
           kubectl create namespace cert-manager
           
-          # Install Prowler
-          cat << EOF > prowler.yaml
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: prowler
-            namespace: prowler
-          spec:
-            replicas: 1
-            selector:
-              matchLabels:
-                app: prowler
-            template:
-              metadata:
-                labels:
-                  app: prowler
-              spec:
-                containers:
-                - name: prowler
-                  image: toniblyx/prowler:latest
-          EOF
-          kubectl apply -f prowler.yaml -n prowler
+          # Install Prowler using the yaml file from the repo
+          kubectl apply -f ~/prowler.yaml -n prowler
           
           # Install Checkov
           kubectl apply -f https://raw.githubusercontent.com/bridgecrewio/checkov/main/kubernetes/checkov-job.yaml -n checkov
