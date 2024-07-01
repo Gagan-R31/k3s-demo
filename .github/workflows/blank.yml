@@ -2,10 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-  pull_request:
-  schedule:
-    - cron: '*/15 * * * *'
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -13,13 +10,21 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Deploy to EC2
+    - name: Setup SSH key
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy to EC2
+      env:
         HOST: 35.175.132.153
         USER: ubuntu
       run: |
-        ssh -o StrictHostKeyChecking=no -i <(echo "$PRIVATE_KEY") ${USER}@${HOST} '
+        ssh ${USER}@${HOST} '
           # Install K3s
           curl -sfL https://get.k3s.io | sudo sh -
           
@@ -30,6 +35,7 @@ jobs:
           sudo k3s kubectl get nodes
           
           # Set up kubeconfig for the ubuntu user
+          mkdir -p ~/.kube
           sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
           sudo chown ubuntu:ubuntu ~/.kube/config
           sudo chmod 600 ~/.kube/config
