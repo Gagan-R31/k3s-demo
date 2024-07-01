@@ -58,6 +58,7 @@ jobs:
           sudo kubectl get pods -n cert-manager
           sudo helm list -A
           sudo kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml
+          sudo export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
           sudo helm repo add jetstack https://charts.jetstack.io --force-update
           sudo helm upgrade --install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.15.1
           
