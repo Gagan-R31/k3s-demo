@@ -28,6 +28,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
           # Install K3s
           sudo su -
+          apt update 
           curl -sfL https://get.k3s.io | sh -
           
           # Wait for K3s to be ready
