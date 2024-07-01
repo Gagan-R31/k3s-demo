@@ -10,42 +10,51 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Copy prowler.yaml to EC2
+      env:
+        PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        HOST: 52.87.154.195
+        USER: ubuntu
+      run: |
+        echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+        scp -o StrictHostKeyChecking=no -i private_key prowler.yaml ${USER}@${HOST}:~/prowler.yaml
+
     - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
         HOST: your-ec2-instance-ip
-        USER: ec2-user
+        USER: ubuntu
       run: |
         ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
           # Install K3s
-          curl -sfL https://get.k3s.io | sh -
+          curl -sfL https://get.k3s.io | sudo sh -
           
           # Wait for K3s to be ready
-          until kubectl get nodes; do sleep 5; done
+          until sudo kubectl get nodes; do sleep 5; done
           
           # Install Helm
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | sudo bash
           
           # Create namespaces
-          kubectl create namespace checkov
-          kubectl create namespace prowler
-          kubectl create namespace cert-manager
+          sudo kubectl create namespace checkov --dry-run=client -o yaml | sudo kubectl apply -f -
+          sudo kubectl create namespace prowler --dry-run=client -o yaml | sudo kubectl apply -f -
+          sudo kubectl create namespace cert-manager --dry-run=client -o yaml | sudo kubectl apply -f -
           
           # Install Prowler using the yaml file from the repo
-          kubectl apply -f ~/prowler.yaml -n prowler
+          sudo kubectl apply -f ~/prowler.yaml -n prowler
           
           # Install Checkov
-          kubectl apply -f https://raw.githubusercontent.com/bridgecrewio/checkov/main/kubernetes/checkov-job.yaml -n checkov
+          sudo kubectl apply -f https://raw.githubusercontent.com/bridgecrewio/checkov/main/kubernetes/checkov-job.yaml -n checkov
           
           # Install cert-manager
-          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml
-          helm repo add jetstack https://charts.jetstack.io --force-update
-          helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.15.1
+          sudo kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml
+          sudo helm repo add jetstack https://charts.jetstack.io --force-update
+          sudo helm upgrade --install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.15.1
           
           # Verify installations
-          kubectl get namespaces
-          kubectl get pods -n checkov
-          kubectl get pods -n prowler
-          kubectl get pods -n cert-manager
-          helm list -A
+          sudo kubectl get namespaces
+          sudo kubectl get pods -n checkov
+          sudo kubectl get pods -n prowler
+          sudo kubectl get pods -n cert-manager
+          sudo helm list -A
         '
