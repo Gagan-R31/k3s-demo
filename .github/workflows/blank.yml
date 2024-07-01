@@ -23,7 +23,7 @@ jobs:
         HOST: 35.175.132.153
         USER: ubuntu
       run: |
-        ssh ${USER}@${HOST} '
+        ssh -i ${USER}@${HOST} '
           # Install K3s
           curl -sfL https://get.k3s.io | sudo sh -
           
