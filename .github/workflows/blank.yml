@@ -51,6 +51,7 @@ jobs:
           # Install cert-manager
           kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml
           export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+          sudo chmod 644 $KUBECONFIG
           helm repo add jetstack https://charts.jetstack.io --force-update
           helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.15.1
           
