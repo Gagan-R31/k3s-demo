@@ -13,7 +13,7 @@ jobs:
     - name: Copy prowler.yaml to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        HOST: 54.221.241.22
+        HOST: 54.84.229.79
         USER: ubuntu
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
@@ -21,12 +21,13 @@ jobs:
         scp -o StrictHostKeyChecking=no -i private_key cluster.yaml ${USER}@${HOST}:~/cluster.yaml
         scp -o StrictHostKeyChecking=no -i private_key deploy.yaml ${USER}@${HOST}:~/deploy.yaml
         scp -o StrictHostKeyChecking=no -i private_key service.yaml ${USER}@${HOST}:~/service.yaml
+         scp -o StrictHostKeyChecking=no -i private_key ingress.yaml ${USER}@${HOST}:~/ingress.yaml
         scp -o StrictHostKeyChecking=no -i private_key ingressroute.yaml ${USER}@${HOST}:~/ingressroute.yaml
 
     - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        HOST: 54.221.241.22
+        HOST: 54.84.229.79
         USER: ubuntu
       run: |
         ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
@@ -78,15 +79,17 @@ jobs:
 
           # Verfying pods and services
           kubectl get all
+
+          # Applying ingress 
+          kubectl apply -f ingress.yaml
           
           # Appling Ingress Route for the service
+          kubectl delete ingress nginx-ingress
           kubectl apply -f ingressroute.yaml
           
           # verifying Ingress route 
           kubectl get ingressroute
           
-
-
           # Checking certificates
           kubectl get certificates
         '
