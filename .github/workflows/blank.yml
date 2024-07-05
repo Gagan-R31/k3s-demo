@@ -18,6 +18,10 @@ jobs:
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         scp -o StrictHostKeyChecking=no -i private_key prowler.yaml ${USER}@${HOST}:~/prowler.yaml
+        scp -o StrictHostKeyChecking=no -i private_key cluster.yaml ${USER}@${HOST}:~/cluster.yaml
+        scp -o StrictHostKeyChecking=no -i private_key deploy.yaml ${USER}@${HOST}:~/deploy.yaml
+        scp -o StrictHostKeyChecking=no -i private_key service.yaml ${USER}@${HOST}:~/service.yaml
+        scp -o StrictHostKeyChecking=no -i private_key ingerss.yaml ${USER}@${HOST}:~/ingress.yaml
 
     - name: Deploy to EC2
       env:
