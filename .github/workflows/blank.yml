@@ -93,5 +93,5 @@ jobs:
           # kubectl get ingressroute
           
           # Checking certificates
-          kubectl get certificates
+          # kubectl get certificates
         '
