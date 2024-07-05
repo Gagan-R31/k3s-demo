@@ -21,7 +21,7 @@ jobs:
         scp -o StrictHostKeyChecking=no -i private_key cluster.yaml ${USER}@${HOST}:~/cluster.yaml
         scp -o StrictHostKeyChecking=no -i private_key deploy.yaml ${USER}@${HOST}:~/deploy.yaml
         scp -o StrictHostKeyChecking=no -i private_key service.yaml ${USER}@${HOST}:~/service.yaml
-        scp -o StrictHostKeyChecking=no -i private_key ingerss.yaml ${USER}@${HOST}:~/ingress.yaml
+        scp -o StrictHostKeyChecking=no -i private_key ingerssroute.yaml ${USER}@${HOST}:~/ingressroute.yaml
 
     - name: Deploy to EC2
       env:
