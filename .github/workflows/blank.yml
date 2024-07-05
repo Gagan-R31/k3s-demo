@@ -65,4 +65,7 @@ jobs:
           kubectl get pods -n prowler
           kubectl get pods -n cert-manager
           helm list -A
+
+          # Creating Cluster Issuer
+          kubectl apply -f cluster.yaml
         '
