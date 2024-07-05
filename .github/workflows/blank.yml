@@ -85,8 +85,7 @@ jobs:
           # verifying Ingress route 
           kubectl get ingressroute
           
-          # Wait for Certificate to be ready
-          until kubectl get certificate; do sleep 10; True
+
 
           # Checking certificates
           kubectl get certificates
