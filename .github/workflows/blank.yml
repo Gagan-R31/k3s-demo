@@ -86,11 +86,11 @@ jobs:
           curl -I https://example-test.zapto.org
           
           # Appling Ingress Route for the service
-          kubectl delete ingress nginx-ingress
-          kubectl apply -f ingressroute.yaml
+          # kubectl delete ingress nginx-ingress
+          # kubectl apply -f ingressroute.yaml
           
           # verifying Ingress route 
-          kubectl get ingressroute
+          # kubectl get ingressroute
           
           # Checking certificates
           kubectl get certificates
