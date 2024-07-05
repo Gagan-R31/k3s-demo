@@ -67,7 +67,7 @@ jobs:
           helm list -A
 
           # Creating Cluster Issuer
-          kubectl apply -f cluster.yaml
+          kubectl apply -f cluster.yaml --validate=false
           kubectl get clusterissuer
 
           # Deploying Nginx Server
